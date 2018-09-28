@@ -15,16 +15,17 @@
 package query
 
 import (
-	"os"
-	"strings"
-	"regexp"
 	"fmt"
+	"os"
+	"regexp"
 	"sort"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/apis/rbac/v1beta1"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/jsonpath"
@@ -288,8 +289,8 @@ func GetSubjects(args []string) {
 	}
 
 	if AllNamespaces {
-		for _, namespace := range getNamespaces(roleBindings){
-			roleBindingsOfNamespace := util.RoleBindingFilter(roleBindings, func(r v1beta1.RoleBinding) bool { return r.Namespace == namespace})
+		for _, namespace := range getNamespaces(roleBindings) {
+			roleBindingsOfNamespace := util.RoleBindingFilter(roleBindings, func(r v1beta1.RoleBinding) bool { return r.Namespace == namespace })
 			printRoleBindings(roleBindingsOfNamespace, subjectFilter, namespace)
 		}
 
@@ -365,14 +366,14 @@ func printSubject(subject v1beta1.Subject, roleRefs []v1beta1.RoleRef) {
 	}
 }
 
-func getFullSubjectName(subject v1beta1.Subject) (string) {
+func getFullSubjectName(subject v1beta1.Subject) string {
 	if subject.Namespace != "" {
 		return subject.Kind + ":" + subject.Namespace + ":" + subject.Name
 	}
 	return subject.Kind + ":" + subject.Name
 }
 
-func getPolicyRules(roleRef *v1beta1.RoleRef) ([] v1beta1.PolicyRule) {
+func getPolicyRules(roleRef *v1beta1.RoleRef) []v1beta1.PolicyRule {
 	switch roleRef.Kind {
 	case "ClusterRole":
 		for _, clusterRole := range clusterRoleList.Items {
@@ -431,10 +432,10 @@ func appendRoleRefDistinct(roleRefs []v1beta1.RoleRef, roleRefToAdd v1beta1.Role
 	return roleRefs
 }
 
-func getNamespaces(roleBindings []v1beta1.RoleBinding) ([]string){
+func getNamespaces(roleBindings []v1beta1.RoleBinding) []string {
 	var namespaces []string
 	for _, roleBinding := range roleBindings {
-		if !util.Contains(namespaces, roleBinding.Namespace){
+		if !util.Contains(namespaces, roleBinding.Namespace) {
 			namespaces = append(namespaces, roleBinding.Namespace)
 		}
 	}
